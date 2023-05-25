@@ -1,12 +1,12 @@
 import random
 import sys
 import pygame
-from share import IMAGES_DIR, FONT_DIR, BACKGROUND_COLOR, FONT_COLOR, paintEntity
-
+import share 
+import monitor
 
 class Ship:
     def __init__(self, swidth, sheight):
-        self.ship = pygame.image.load(IMAGES_DIR + 'ship02.png')
+        self.ship = pygame.image.load(share.IMAGES_DIR + 'ship02.png')
         self.shipSize = self.ship.get_rect().size
         self.shipX = swidth / 2  # 우주선의 X좌표
         self.shipY = sheight * 0.8  # 우주선의 Y좌표
@@ -19,12 +19,12 @@ class Ship:
         self.dy += y
 
     # 우주선이 화면 안에서만 움직이게 한다.
-    def moveShip(self, swidth, sheight):
-        if (0 < self.shipX + self.dx and self.shipX + self.dx <= swidth - self.shipSize[0]) \
-                and (sheight/2 < self.shipY + self.dy and self.shipY + self.dy <= sheight - self.shipSize[1]):  # 화면의 중앙까지만
+    def moveShip(self, monitor):
+        if (0 < self.shipX + self.dx and self.shipX + self.dx <= monitor.swidth - self.shipSize[0]) \
+                and (monitor.sheight/2 < self.shipY + self.dy and self.shipY + self.dy <= monitor.sheight - self.shipSize[1]):  # 화면의 중앙까지만
             self.shipX += self.dx
             self.shipY += self.dy
-        paintEntity(monitor, self.ship, self.shipX, self.shipY)
+        monitor.paintEntity(self.ship, self.shipX, self.shipY)
 
     def stopShip(self):
         self.dx = 0
@@ -37,7 +37,7 @@ class Monster:
                              'monster05.png', 'monster06.png', 'monster07.png', 'monster08.png',
                              'monster09.png', 'monster10.png']
         self.monster = pygame.image.load(
-            IMAGES_DIR + random.choice(self.monsterImage))
+            share.IMAGES_DIR + random.choice(self.monsterImage))
         self.monsterSize = self.monster.get_rect().size
         self.monsterX = 0
         self.monsterY = random.randrange(
@@ -46,7 +46,7 @@ class Monster:
 
     def initMonster(self, swidth):
         # 우주괴물을 초기화(무작위 이미지로 다시 준비)
-        self.monster = pygame.image.load(IMAGES_DIR +
+        self.monster = pygame.image.load(share.IMAGES_DIR +
                                          random.choice(self.monsterImage))
         self.monsterSize = self.monster.get_rect().size
         self.monsterX = 0
@@ -54,24 +54,24 @@ class Monster:
         self.monsterSpeed = random.randrange(1, 5)
 
     # 우주괴물이 자동으로 나타나 왼쪽에서 오른쪽으로 움직인다.
-    def moveMonster(self, swidth, user):
+    def moveMonster(self, monitor, user):
         self.monsterX += self.monsterSpeed
-        if self.monsterX > swidth:
+        if self.monsterX > monitor.swidth:
             user.decreaseHeart()  # 우주괴물을 놓칠 때 마다 하트가 감소한다.
             self.monsterX = 0
-            self.monsterY = random.randrange(0, int(swidth * 0.3))
+            self.monsterY = random.randrange(0, int(monitor.swidth * 0.3))
             # 우주괴물 이미지를 무작위로 선택한다.
-            self.monster = pygame.image.load(IMAGES_DIR +
+            self.monster = pygame.image.load(share.IMAGES_DIR +
                                              random.choice(self.monsterImage))
             self.monsterSize = self.monster.get_rect().size
             self.monsterSpeed = random.randrange(1, 5)
 
-        paintEntity(monitor, self.monster, self.monsterX, self.monsterY)
+        monitor.paintEntity(self.monster, self.monsterX, self.monsterY)
 
 
 class Missile:
     def __init__(self):
-        self.missile = pygame.image.load(IMAGES_DIR + 'missile.png')
+        self.missile = pygame.image.load(share.IMAGES_DIR + 'missile.png')
         self.missileX, self.missileY = None, None  # None은 미사일을 쏘지 않았다는 의미이다.
 
     def initMissile(self):
@@ -82,7 +82,7 @@ class Missile:
             self.missileX = ship.shipX + ship.shipSize[0]/2
             self.missileY = ship.shipY
 
-    def showMissile(self, monster, user, swidth):
+    def showMissile(self, monitor, monster, user):
         # @기능 4-4 : 미사일을 화면에 표시한다.
         if self.missileX != None:                          # 총알을 쏘면 좌표를 위로 변경한다.
             self.missileY -= 10
@@ -90,33 +90,18 @@ class Missile:
                 self.missileX, self.missileY = None, None   # 총알이 사라진다.
 
         if self.missileX != None:           # 미사일을 쏜 적이 있으면 미사일을 그려준다.
-            paintEntity(monitor, self.missile, self.missileX, self.missileY)
+            monitor.paintEntity(self.missile, self.missileX, self.missileY)
             # @기능 5-2 : 우주괴물이 미사일에 맞았는지 체크한다.
             if (monster.monsterX < self.missileX and self.missileX < monster.monsterX + monster.monsterSize[0]) and \
                     (monster.monsterY < self.missileY and self.missileY < monster.monsterY + monster.monsterSize[1]):
                 user.increaseFireCount()
-                monster.initMonster(swidth)
+                monster.initMonster(monitor.swidth)
                 self.initMissile()
 
 
-def writeScore(monitor, score, sheight):
-    myfont = pygame.font.Font(FONT_DIR + 'NanumGothic.ttf', 20)      # 한글 폰트
-    txt = myfont.render('파괴한 우주괴물 수 : ' + str(score), True,
-                        (FONT_COLOR['r'], FONT_COLOR['g'], FONT_COLOR['b']))
-    monitor.blit(txt, (10, sheight - 40))
-    pygame.display.update()
-
-
-def playGame(_monitor, pygame, swidth, sheight, user):
-    global monitor
-    monitor = _monitor
-
-    r = BACKGROUND_COLOR['r']
-    g = BACKGROUND_COLOR['g']
-    b = BACKGROUND_COLOR['b']
-
-    ship = Ship(swidth, sheight)
-    monster = Monster(swidth)
+def playGame(monitor, pygame, user):
+    ship = Ship(monitor.sheight, monitor.sheight)
+    monster = Monster(monitor.sheight)
     missile = Missile()
 
     # @기능 5-1 : 맞힌 우주괴물 숫자를 저장할 변수를 선언한다.
@@ -124,11 +109,12 @@ def playGame(_monitor, pygame, swidth, sheight, user):
     # 무한 반복
     while True:
         if (user.isDie()):
+            user.userState = 'die'
             return
 
         (pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
-        monitor.fill((r, g, b))              # 화면 배경을 칠한다.
-        user.showHeart(monitor, sheight)
+        monitor.fillBackground()
+        user.showHeart(monitor, 220, monitor.sheight - 38)
 
         # 키보드나 마우스 이벤트가 들어오는지 체크한다.
         for e in pygame.event.get():
@@ -157,12 +143,13 @@ def playGame(_monitor, pygame, swidth, sheight, user):
                    or e.key == pygame.K_UP or e.key == pygame.K_DOWN:
                     ship.stopShip()
 
-        ship.moveShip(swidth, sheight)
-        monster.moveMonster(swidth, user)
-        missile.showMissile(monster, user, swidth)
+        ship.moveShip(monitor)
+        monster.moveMonster(monitor, user)
+        missile.showMissile(monitor, monster, user)
 
         # @기능 5-3 : 점수를 화면에 쓰는 함수를 호출한다.
-        writeScore(monitor, user.fireCount, sheight)
+        txt = '파괴한 우주괴물 수: ' + str(user.fireCount)
+        monitor.writeText(txt, 10, monitor.sheight-40)
 
         # 화면을 업데이트한다.
         pygame.display.update()

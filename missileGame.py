@@ -109,8 +109,7 @@ def playGame(monitor, pygame, user):
     # 무한 반복
     while True:
         if (user.isDie()):
-            user.userState = 'die'
-            return
+            return user
 
         (pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
         monitor.fillBackground()

@@ -1,8 +1,50 @@
 import random
 import sys
-import pygame
 import share 
-import monitor
+import pygame
+from user import User
+from monitor import Monitor
+import sys
+import tkinter as tk
+
+class App(tk.Tk):
+    def __init__(self, frame_class, user=None):
+        tk.Tk.__init__(self)
+        self.geometry("600x500")
+        self._frame = None
+        self.switch_frame(frame_class, user)
+        self.mainloop()
+        
+    def switch_frame(self, frame_class, user=None):
+        """Destroys current frame and replaces it with a new one."""
+        if str(frame_class) == "<class 'missileGame.GameOver'>":
+            new_frame = frame_class(master=self, user=user)
+        else:
+            new_frame = frame_class(self)
+
+        if self._frame is not None:
+            self._frame.destroy()
+        self._frame = new_frame
+        self._frame.pack()
+        
+    def quit(self):
+       self.destroy()
+       
+class GameOver(tk.Frame):
+    def __init__(self, master, user):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text="Missile Game").pack(side="top", fill="x", pady=10) # Game Title
+        tk.Label(self, text="score: " + str(user.fireCount)).pack(side="top", fill="x", pady=10)
+        tk.Button(self, text="retry", command=lambda:self.retryGame(master, user)).pack()
+        tk.Button(self, text="quit", command=lambda:self.quitGame()).pack()
+        
+    def retryGame(self, master, _user):
+        gameStage = GameStage()
+        master.quit()
+        gameStage.playGame()
+        
+    def quitGame(self):
+        sys.exit()
 
 class Ship:
     def __init__(self, swidth, sheight):
@@ -98,57 +140,65 @@ class Missile:
                 monster.initMonster(monitor.swidth)
                 self.initMissile()
 
+class GameStage:
+    def __init__(self):
+        pygame.init()
+        self.monitor = Monitor(pygame)
+        self.user = User(pygame)
 
-def playGame(monitor, pygame, user):
-    ship = Ship(monitor.sheight, monitor.sheight)
-    monster = Monster(monitor.sheight)
-    missile = Missile()
+    def playGame(self):
+        ship = Ship(self.monitor.sheight, self.monitor.sheight)
+        monster = Monster(self.monitor.sheight)
+        missile = Missile()
 
-    # @기능 5-1 : 맞힌 우주괴물 숫자를 저장할 변수를 선언한다.
+        # @기능 5-1 : 맞힌 우주괴물 숫자를 저장할 변수를 선언한다.
 
-    # 무한 반복
-    while True:
-        if (user.isDie()):
-            return user
+        # 무한 반복
+        while True:
+            if (self.user.isDie()):
+                self.dieUser()
 
-        (pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
-        monitor.fillBackground()
-        user.showHeart(monitor, 220, monitor.sheight - 38)
+            (pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
+            self.monitor.fillBackground()
+            self.user.showHeart(self.monitor, 220, self.monitor.sheight - 38)
 
-        # 키보드나 마우스 이벤트가 들어오는지 체크한다.
-        for e in pygame.event.get():
-            if e.type in [pygame.QUIT]:
-                pygame.quit()
-                sys.exit()
+            # 키보드나 마우스 이벤트가 들어오는지 체크한다.
+            for e in pygame.event.get():
+                if e.type in [pygame.QUIT]:
+                    pygame.quit()
+                    sys.exit()
 
-            # @기능 2-3 : 방향키에 따라 우주선이 움직이게 한다.
-            # 방향키를 누르면 우주선이 이동한다(누르고 있으면 계속 이동).
-            if e.type in [pygame.KEYDOWN]:
-                if e.key == pygame.K_LEFT:
-                    ship.moveX(-5)
-                elif e.key == pygame.K_RIGHT:
-                    ship.moveX(5)
-                elif e.key == pygame.K_UP:
-                    ship.moveY(-5)
-                elif e.key == pygame.K_DOWN:
-                    ship.moveY(5)
-                # @기능 4-3 : 스페이스바를 누르면 미사일을 발사한다.
-                elif e.key == pygame.K_SPACE:
-                    missile.shootMissile(ship)
+                # @기능 2-3 : 방향키에 따라 우주선이 움직이게 한다.
+                # 방향키를 누르면 우주선이 이동한다(누르고 있으면 계속 이동).
+                if e.type in [pygame.KEYDOWN]:
+                    if e.key == pygame.K_LEFT:
+                        ship.moveX(-5)
+                    elif e.key == pygame.K_RIGHT:
+                        ship.moveX(5)
+                    elif e.key == pygame.K_UP:
+                        ship.moveY(-5)
+                    elif e.key == pygame.K_DOWN:
+                        ship.moveY(5)
+                    # @기능 4-3 : 스페이스바를 누르면 미사일을 발사한다.
+                    elif e.key == pygame.K_SPACE:
+                        missile.shootMissile(ship)
 
-            # 방향키를 떼면 우주선이 멈춘다.
-            if e.type in [pygame.KEYUP]:
-                if e.key == pygame.K_LEFT or e.key == pygame.K_RIGHT \
-                   or e.key == pygame.K_UP or e.key == pygame.K_DOWN:
-                    ship.stopShip()
+                # 방향키를 떼면 우주선이 멈춘다.
+                if e.type in [pygame.KEYUP]:
+                    if e.key == pygame.K_LEFT or e.key == pygame.K_RIGHT \
+                    or e.key == pygame.K_UP or e.key == pygame.K_DOWN:
+                        ship.stopShip()
 
-        ship.moveShip(monitor)
-        monster.moveMonster(monitor, user)
-        missile.showMissile(monitor, monster, user)
+            ship.moveShip(self.monitor)
+            monster.moveMonster(self.monitor, self.user)
+            missile.showMissile(self.monitor, monster, self.user)
 
-        # @기능 5-3 : 점수를 화면에 쓰는 함수를 호출한다.
-        txt = '파괴한 우주괴물 수: ' + str(user.fireCount)
-        monitor.writeText(txt, 10, monitor.sheight-40)
+            # @기능 5-3 : 점수를 화면에 쓰는 함수를 호출한다.
+            txt = '파괴한 우주괴물 수: ' + str(self.user.fireCount)
+            self.monitor.writeText(txt, 10, self.monitor.sheight-40)
 
-        # 화면을 업데이트한다.
-        pygame.display.update()
+            # 화면을 업데이트한다.
+            pygame.display.update()
+            
+    def dieUser(self):
+        App(GameOver, self.user)

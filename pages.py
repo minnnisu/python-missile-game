@@ -1,12 +1,8 @@
-# Multi-frame tkinter application v2.3
 import tkinter as tk
-import pygame
-from missileGame import playGame
-from user import User
-from monitor import Monitor
 import sys
+from missileGame import GameStage
 
-class SampleApp(tk.Tk):
+class App(tk.Tk):
     def __init__(self, frame_class, user=None):
         tk.Tk.__init__(self)
         self.geometry("600x500")
@@ -68,13 +64,9 @@ class LoginPage(tk.Frame):
             print("without login")
             # play Game
         
-        pygame.init()
-        monitor = Monitor(pygame)
-        user = User(pygame)
+        gameStage = GameStage()
         master.quit()
-        
-        playGame(monitor, pygame, user)
-        SampleApp(GameOver,user)
+        gameStage.playGame()
     
 class RankPage(tk.Frame):
     def __init__(self, master):
@@ -96,26 +88,6 @@ class RankPage(tk.Frame):
         tk.Label(self, text="Rank").pack(side="top", fill="x", pady=10)
         tk.Button(self, text="Return to main page",
                   command=lambda: master.switch_frame(MainPage)).pack()
-        
-class GameOver(tk.Frame):
-    def __init__(self, master, user):
-        tk.Frame.__init__(self, master)
-        tk.Label(self, text="Missile Game").pack(side="top", fill="x", pady=10) # Game Title
-        tk.Label(self, text="score: " + str(user.fireCount)).pack(side="top", fill="x", pady=10)
-        tk.Button(self, text="retry", command=lambda:self.retryGame(master, user)).pack()
-        tk.Button(self, text="quit", command=lambda:self.quitGame(master)).pack()
-        
-    def retryGame(self, master, _user):
-        pygame.init()
-        monitor = Monitor(pygame)
-        user = User(pygame)
-        user.userName = _user.userName
-        master.quit()
-        
-        playGame(monitor, pygame, user)
-        
-    def quitGame(self, master):
-        sys.exit()
 
 if __name__ == "__main__":
-    app = SampleApp(MainPage)
+    app = App(MainPage)

@@ -141,11 +141,12 @@ class Missile:
 
 class GameStage:
     def __init__(self, _user):
-        pygame.init()
+        self.pygame = pygame
+        self.pygame.init()
         
         self.user = _user
-        self.monitor = Monitor(pygame)
-        self.user.init(Heart(pygame))
+        self.monitor = Monitor(self.pygame)
+        self.user.init(Heart(self.pygame))
 
     def playGame(self):
         ship = Ship(self.monitor.sheight, self.monitor.sheight)
@@ -156,34 +157,34 @@ class GameStage:
             if (self.user.isDie()):
                 self.dieUser()
 
-            (pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
+            (self.pygame.time.Clock()).tick(50)  # 게임 진행을 늦춘다(10~100 정도가 적당).
             self.monitor.fillBackground()
             self.user.getHeart().showHeart(self.monitor, 220, self.monitor.sheight - 38)
 
             # 키보드나 마우스 이벤트가 들어오는지 체크한다.
-            for e in pygame.event.get():
-                if e.type in [pygame.QUIT]:
-                    pygame.quit()
+            for e in self.pygame.event.get():
+                if e.type in [self.pygame.QUIT]:
+                    self.pygame.quit()
                     sys.exit()
 
-                if e.type in [pygame.KEYDOWN]:
+                if e.type in [self.pygame.KEYDOWN]:
                     # 방향키에 따라 우주선이 움직이게 한다.
-                    if e.key == pygame.K_LEFT:
+                    if e.key == self.pygame.K_LEFT:
                         ship.moveX(-5)
-                    elif e.key == pygame.K_RIGHT:
+                    elif e.key == self.pygame.K_RIGHT:
                         ship.moveX(5)
-                    elif e.key == pygame.K_UP:
+                    elif e.key == self.pygame.K_UP:
                         ship.moveY(-5)
-                    elif e.key == pygame.K_DOWN:
+                    elif e.key == self.pygame.K_DOWN:
                         ship.moveY(5)
                     
-                    elif e.key == pygame.K_SPACE: # 스페이스바를 누르면 미사일을 발사한다.
+                    elif e.key == self.pygame.K_SPACE: # 스페이스바를 누르면 미사일을 발사한다.
                         missile.shootMissile(ship)
 
                 # 방향키를 떼면 우주선이 멈춘다.
-                if e.type in [pygame.KEYUP]:
-                    if e.key == pygame.K_LEFT or e.key == pygame.K_RIGHT \
-                    or e.key == pygame.K_UP or e.key == pygame.K_DOWN:
+                if e.type in [self.pygame.KEYUP]:
+                    if e.key == self.pygame.K_LEFT or e.key == self.pygame.K_RIGHT \
+                    or e.key == self.pygame.K_UP or e.key == self.pygame.K_DOWN:
                         ship.stopShip()
 
             ship.moveShip(self.monitor)
@@ -198,7 +199,7 @@ class GameStage:
                 self.monitor.writeText(usernameTxt, 10, self.monitor.sheight-70)
            
             # 화면을 업데이트한다.
-            pygame.display.update()
+            self.pygame.display.update()
             
     def dieUser(self):
         App(GameOver, self.user)

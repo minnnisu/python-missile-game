@@ -1,4 +1,0 @@
-from share import IMAGES_DIR, FONT_DIR, BACKGROUND_COLOR, FONT_COLOR
-
-
-

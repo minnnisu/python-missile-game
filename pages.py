@@ -1,21 +1,19 @@
 import tkinter as tk
 import sys
 from missileGame import GameStage
+from user import User
 
 class App(tk.Tk):
-    def __init__(self, frame_class, user=None):
+    def __init__(self, frame_class, swidth, sheight):
         tk.Tk.__init__(self)
-        self.geometry("600x500")
+        self.geometry(str(swidth) + "x" + str(sheight))
         self._frame = None
-        self.switch_frame(frame_class, user)
+        self.switch_frame(frame_class)
         self.mainloop()
         
-    def switch_frame(self, frame_class, user=None):
+    def switch_frame(self, frame_class):
         """Destroys current frame and replaces it with a new one."""
-        if str(frame_class) == "<class '__main__.GameOver'>":
-            new_frame = frame_class(master=self, user=user)
-        else:
-            new_frame = frame_class(self)
+        new_frame = frame_class(self)
 
         if self._frame is not None:
             self._frame.destroy()
@@ -24,12 +22,19 @@ class App(tk.Tk):
         
     def quit(self):
        self.destroy()
+       
+class Alert(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text="Please enter your nickname").pack()
+        tk.Button(self, text="OK",
+                  command=lambda: master.quit()).pack() # Play Games
     
 
 class MainPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        tk.Label(self, text="Missile Game").pack() # Game Title
+        tk.Label(self, text="Missile Game").pack()
         tk.Button(self, text="play game",
                   command=lambda: master.switch_frame(LoginPage)).pack() # Play Game
         tk.Button(self, text="Show rank",
@@ -38,40 +43,39 @@ class MainPage(tk.Frame):
 class LoginPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        tk.Label(self, text="Missile Game").pack() # Game Title
+        tk.Label(self, text="Missile Game").pack()
         
         # input user info
         tk.Label(self, text="User name").pack()
-        self.userNameInput = tk.Text(self, width=20, height=1)
-        self.userNameInput.pack()
+        self.usernameInput = tk.Text(self, width=20, height=1)
+        self.usernameInput.pack()
         tk.Button(self, text="Login",
-                  command=lambda: self.playGame(master, True)).pack()
+                  command=lambda: self.checkUserNameVaild(master)).pack()
         
         tk.Button(self, text="Play without login",
-                  command=lambda: self.playGame(master)).pack() # play without login
+                  command=lambda: self.playGame(master, None)).pack() # play without login
         
     def getUsername(self):
-        return self.userNameInput.get("1.0","end-1c")
+        return self.usernameInput.get("1.0","end-1c")
+    
+    def checkUserNameVaild(self, master):
+        if self.getUsername() == "":
+            App(Alert, 200, 100)
+            return
         
-    def playGame(self, master, isLogin=False):
-        if isLogin:
-            userName = self.getUsername()
-            if userName != "":
-                print(userName)
-            # configure DB
-            # play Game
-        else:
-            print("without login")
-            # play Game
+        username = self.getUsername()
+        self.playGame(master, username)
         
-        gameStage = GameStage()
+    def playGame(self, master, username = None):       
+        user = User(username) # 유저 생성
+        gameStage = GameStage(user) 
         master.quit()
         gameStage.playGame()
     
 class RankPage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        tk.Label(self, text="Missile Game").pack(side="top", fill="x", pady=10) # Game Title
+        tk.Label(self, text="Missile Game").pack(side="top", fill="x", pady=10)
         
         # 위젯 생성
         widget = tk.Listbox(self, width=50)
@@ -90,4 +94,4 @@ class RankPage(tk.Frame):
                   command=lambda: master.switch_frame(MainPage)).pack()
 
 if __name__ == "__main__":
-    app = App(MainPage)
+    app = App(MainPage, 600, 500)

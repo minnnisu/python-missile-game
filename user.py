@@ -31,10 +31,6 @@ class User:
 
     def getHeart(self):
         return self.heart
-    
-class Test:
-    def print_T(self):
-        print("test")
 
    
 

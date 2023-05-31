@@ -18,10 +18,7 @@ class App(tk.Tk):
         
     def switch_frame(self, frame_class, user=None):
         """Destroys current frame and replaces it with a new one."""
-        if str(frame_class) == "<class 'missileGame.GameOver'>":
-            new_frame = frame_class(self, user)
-        else:
-            new_frame = frame_class(self)
+        new_frame = frame_class(self, user)
 
         if self._frame is not None:
             self._frame.destroy()

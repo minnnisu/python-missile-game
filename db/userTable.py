@@ -29,11 +29,11 @@ class UserTable:
         self.conn.commit()
         print("Record updated successfully")
         
-    def selectUser(self, user=None, isOneUser=False):
+    def selectUser(self, username=None, isOneUser=False):
         query = ""
         
         if(isOneUser): 
-            query = f"SELECT ID,NAME,SCORE,DATETIME from USER where NAME = '{user.username}'" # query only specific user
+            query = f"SELECT ID,NAME,SCORE,DATETIME from USER where NAME = '{username}'" # query only specific user
         else:
             query = "SELECT ID,NAME,SCORE,DATETIME from USER" # qeury all users
             

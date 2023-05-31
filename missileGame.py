@@ -42,7 +42,7 @@ class GameOver(tk.Frame):
         
         if(self.diedUser.username):
             userTable = UserTable()
-            userInfo = userTable.selectUser(self.diedUser, True)
+            userInfo = userTable.selectUser(self.diedUser.username, True)
             if userInfo == []: # Not exist user info
                 userTable.insertUser(self.diedUser)
             elif self.diedUser.fireCount > int(userInfo[0]['score']):
